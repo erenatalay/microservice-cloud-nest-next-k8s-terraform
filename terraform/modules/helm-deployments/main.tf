@@ -191,6 +191,21 @@ resource "helm_release" "prometheus_stack" {
           storageClassName = "hcloud-volumes"
           size             = "10Gi"
         }
+        datasources = {
+          "datasources.yaml" = {
+            apiVersion = 1
+            datasources = [
+              {
+                name      = "Prometheus"
+                type      = "prometheus"
+                access    = "proxy"
+                url       = "http://kube-prometheus-stack-prometheus.monitoring:9090"
+                isDefault = true
+                uid       = "prometheus"
+              }
+            ]
+          }
+        }
         ingress = {
           enabled = var.domain_name != ""
           hosts   = var.domain_name != "" ? ["grafana.${var.domain_name}"] : []
