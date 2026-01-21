@@ -1,0 +1,11 @@
+region           = "eu-central-1"
+project_name     = "aws-k8s"
+environment      = "production"
+cluster_version  = "1.29"
+node_instance_types = ["m6i.large"]
+node_min_size    = 3
+node_desired_size = 4
+node_max_size    = 8
+single_nat_gateway = false
+cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
+ingress_public_cidrs = ["0.0.0.0/0"]

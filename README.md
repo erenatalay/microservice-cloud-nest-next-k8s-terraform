@@ -236,6 +236,15 @@ kubectl create secret generic auth-api-secret \
   --namespace production
 ```
 
+## Ortam Seçimi (AWS veya Hetzner)
+
+- Hetzner/k3s: `aws-k8s-helm/values-hetzner.yaml` (storage class `hcloud-volumes` ve `nginx` ingress).
+- AWS/EKS: `aws-k8s-helm/values-aws.yaml` (storage class `gp3`). Eğer cluster default storage class farklıysa bu değeri güncelle.
+- AWS için ingress kullanacaksan, cluster’da `ingress-nginx` veya `aws-load-balancer-controller` kurulu olmalı; `ingress.className` ve `annotations` buna göre ayarlanmalı.
+- AWS EKS altyapisi Terraform icin: `terraform/aws/README.md`.
+- EBS CSI gp3 StorageClass istersen: `k8s/storageclass-gp3.yaml`.
+- Ingress NGINX values: `k8s/ingress-nginx-values.yaml` (EKS + NLB icin).
+
 ## Deployment
 
 ### 1. Ingress Controller Kurulumu (Traefik - k3s ile birlikte gelir)
@@ -523,4 +532,3 @@ kubectl port-forward svc/auth-api 3000:3000 -n production
 - [Helm Documentation](https://helm.sh/docs/)
 - [Bitnami PostgreSQL Chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
 - [Traefik Documentation](https://doc.traefik.io/traefik/)
-

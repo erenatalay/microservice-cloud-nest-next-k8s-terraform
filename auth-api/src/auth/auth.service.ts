@@ -96,14 +96,6 @@ export class AuthService {
       });
     }
 
-
-
-
-
-
-
-
-
     const accessToken = await this.tokenService.createAccessToken(user);
     const refreshToken = await this.tokenService.createRefreshToken(user);
 

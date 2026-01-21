@@ -1,19 +1,10 @@
-
-
-
-
-
 global:
   imageRegistry: "docker.io"
   imagePullSecrets: []
-  storageClass: "hcloud-volumes"
-
+  storageClass: "gp3"
 
 networkPolicy:
   enabled: true
-
-
-
 
 authApi:
   enabled: true
@@ -24,11 +15,9 @@ authApi:
     pullPolicy: "Always"
   replicaCount: 2
 
-
   pdb:
     enabled: true
     minAvailable: 1
-
 
   initContainers:
     waitForDb:
@@ -69,9 +58,6 @@ authApi:
     POSTGRES_DB: "auth"
     POSTGRES_PORT: "5432"
 
-
-
-
   envFrom:
     - secretRef:
         name: auth-api-secrets
@@ -94,7 +80,6 @@ authApi:
     timeoutSeconds: 3
     failureThreshold: 3
 
-
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
@@ -104,9 +89,6 @@ authApi:
               matchLabels:
                 app: auth-api
             topologyKey: kubernetes.io/hostname
-
-
-
 
 productApi:
   enabled: true
@@ -151,7 +133,6 @@ productApi:
     PORT: "3002"
     API_PORT: "3002"
     API_GLOBAL_PREFIX: "api"
-    AUTH_SERVICE_URL: "http://auth-api:3001"
     JWT_ISSUER: "auth-service"
     JWT_AUDIENCE: "api-services"
     POSTGRES_USER: "postgres"
@@ -190,9 +171,6 @@ productApi:
                 app: product-api
             topologyKey: kubernetes.io/hostname
 
-
-
-
 gateway:
   enabled: true
   name: gateway
@@ -208,45 +186,44 @@ gateway:
 
   service:
     type: ClusterIP
-    port: 3000
-    targetPort: 3000
+    port: 4000
+    targetPort: 4000
 
   resources:
     limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
       cpu: 500m
       memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
 
   autoscaling:
     enabled: true
     minReplicas: 2
-    maxReplicas: 4
+    maxReplicas: 5
     targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
 
   env:
     NODE_ENV: "production"
-    PORT: "3000"
-    AUTH_API_URL: "http://auth-api:3001"
-    PRODUCT_API_URL: "http://product-api:3002"
+    PORT: "4000"
+    AUTH_GRAPHQL_URL: "http://auth-api:3001/api/graphql"
+    PRODUCT_GRAPHQL_URL: "http://product-api:3002/api/graphql"
+    GRAPHQL_POLL_INTERVAL: "10000"
 
   livenessProbe:
     httpGet:
-      path: /health
-      port: 3000
-    initialDelaySeconds: 15
+      path: /api/health
+      port: 4000
+    initialDelaySeconds: 20
     periodSeconds: 10
 
   readinessProbe:
     httpGet:
-      path: /health
-      port: 3000
-    initialDelaySeconds: 5
+      path: /api/health
+      port: 4000
+    initialDelaySeconds: 10
     periodSeconds: 5
-
-
-
 
 ecommerce:
   enabled: true
@@ -268,11 +245,11 @@ ecommerce:
 
   resources:
     limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
       cpu: 500m
       memory: 512Mi
-    requests:
-      cpu: 250m
-      memory: 256Mi
 
   autoscaling:
     enabled: true
@@ -299,9 +276,6 @@ ecommerce:
     initialDelaySeconds: 10
     periodSeconds: 5
 
-
-
-
 ingress:
   enabled: true
   className: nginx
@@ -323,34 +297,6 @@ ingress:
             servicePort: 4000
   tls: []
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 postgresql-auth:
   enabled: true
   auth:
@@ -360,7 +306,7 @@ postgresql-auth:
   primary:
     persistence:
       enabled: true
-      storageClass: "hcloud-volumes"
+      storageClass: "gp3"
       size: 20Gi
     resources:
       limits:
@@ -369,20 +315,6 @@ postgresql-auth:
       requests:
         cpu: 500m
         memory: 512Mi
-    nodeSelector:
-      workload-type: database
-    tolerations:
-      - key: "database"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: true
-
-
-
 
 postgresql-product:
   enabled: true
@@ -393,7 +325,7 @@ postgresql-product:
   primary:
     persistence:
       enabled: true
-      storageClass: "hcloud-volumes"
+      storageClass: "gp3"
       size: 20Gi
     resources:
       limits:
@@ -402,14 +334,6 @@ postgresql-product:
       requests:
         cpu: 500m
         memory: 512Mi
-    nodeSelector:
-      workload-type: database
-    tolerations:
-      - key: "database"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: true
+
+postgresql-analytics:
+  enabled: false
