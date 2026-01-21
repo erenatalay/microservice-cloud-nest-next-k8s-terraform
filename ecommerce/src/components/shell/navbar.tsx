@@ -17,10 +17,8 @@ import { useAuth } from '@/context/AuthContext';
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
-
   const handleLogout = () => {
     logout();
-    router.push('/');
   };
 
   return (

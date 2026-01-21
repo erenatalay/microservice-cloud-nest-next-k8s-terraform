@@ -41,7 +41,7 @@ const errorCodeToStatus: Record<string, number> = {
   [ErrorCode.SERVICE_UNAVAILABLE]: 503,
 };
 
-function generateRequestId(): string {
+function generateCorrelationId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
@@ -75,12 +75,12 @@ class AuthenticatedDataSource extends RemoteGraphQLDataSource {
       request.http.headers.set('user-agent', userAgent);
     }
 
-    const requestIdHeader = ctx.req?.headers?.['x-request-id'];
-    const requestId =
-      typeof requestIdHeader === 'string'
-        ? requestIdHeader
-        : generateRequestId();
-    request.http.headers.set('x-request-id', requestId);
+    const correlationIdHeader = ctx.req?.headers?.['x-correlation-id'];
+    const correlationId =
+      typeof correlationIdHeader === 'string'
+        ? correlationIdHeader
+        : generateCorrelationId();
+    request.http.headers.set('x-correlation-id', correlationId);
   }
 }
 
@@ -98,7 +98,7 @@ class AuthenticatedDataSource extends RemoteGraphQLDataSource {
           context: ({ req, res }: { req: Request; res: Response }) => ({
             req,
             res,
-            requestId: req.headers['x-request-id'],
+            correlationId: req.headers['x-correlation-id'],
           }),
           formatError: (
             formattedError: GraphQLFormattedError,
@@ -129,11 +129,12 @@ class AuthenticatedDataSource extends RemoteGraphQLDataSource {
               requestDidStart: async () => ({
                 willSendResponse: async (
                   requestContext: GraphQLRequestContextWillSendResponse<{
-                    requestId?: string;
+                    correlationId?: string;
                   }>,
                 ) => {
-                  const requestId = requestContext.contextValue?.requestId;
-                  if (!requestId) return;
+                  const correlationId =
+                    requestContext.contextValue?.correlationId;
+                  if (!correlationId) return;
 
                   const body = (requestContext.response as any).body;
                   if (!body || body.kind !== 'single') return;
@@ -141,14 +142,14 @@ class AuthenticatedDataSource extends RemoteGraphQLDataSource {
                   const result = body.singleResult;
                   result.extensions = {
                     ...(result.extensions || {}),
-                    requestId,
+                    correlationId,
                   };
                   if (result.errors) {
                     result.errors = result.errors.map((err: any) => ({
                       ...err,
                       extensions: {
                         ...(err.extensions || {}),
-                        requestId,
+                        correlationId,
                       },
                     }));
                   }

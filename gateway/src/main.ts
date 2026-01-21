@@ -1,6 +1,7 @@
 import { randomUUID } from 'crypto';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 const SENSITIVE_KEY_PATTERNS = [
@@ -19,6 +20,9 @@ const SENSITIVE_KEY_PATTERNS = [
   'session',
   'jwt',
 ];
+
+const CORRELATION_ID_HEADER = 'x-correlation-id';
+const CORRELATION_ID_COOKIE = 'correlation-id';
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -83,15 +87,22 @@ const safeStringify = (value: unknown) => {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser());
+
   app.use((req, res, next) => {
-    const headerValue = req.headers['x-request-id'];
-    const requestId =
+    const headerValue = req.headers[CORRELATION_ID_HEADER];
+    const cookieValue = req.cookies?.[CORRELATION_ID_COOKIE];
+    const correlationId =
       typeof headerValue === 'string' && headerValue.length > 0
         ? headerValue
-        : randomUUID();
+        : typeof cookieValue === 'string' && cookieValue.length > 0
+          ? cookieValue
+          : randomUUID();
 
-    (req.headers as Record<string, string>)['x-request-id'] = requestId;
-    res.setHeader('x-request-id', requestId);
+    (req.headers as Record<string, string>)[CORRELATION_ID_HEADER] =
+      correlationId;
+    res.setHeader(CORRELATION_ID_HEADER, correlationId);
+    res.cookie(CORRELATION_ID_COOKIE, correlationId);
 
     const startedAt = process.hrtime.bigint();
     const requestHeaders = normalizeHeaders(
@@ -124,7 +135,7 @@ async function bootstrap() {
       Logger.log(
         safeStringify({
           service: 'gateway',
-          requestId,
+          correlationId,
           method: req.method,
           path: req.originalUrl,
           statusCode: res.statusCode,

@@ -16,7 +16,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const requestId = request?.headers?.['x-request-id'];
+    const correlationId = request?.headers?.['x-correlation-id'];
 
     if (!request || !response) {
       this.logger.error(
@@ -55,7 +55,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(),
       path: request?.url || 'unknown',
       message,
-      ...(requestId && { requestId }),
+      ...(correlationId && { correlationId }),
 
       ...(typeof errorDetails === 'object' && errorDetails !== null
         ? { errors: errorDetails }

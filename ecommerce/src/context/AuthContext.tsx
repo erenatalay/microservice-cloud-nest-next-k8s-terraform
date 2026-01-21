@@ -39,38 +39,30 @@ interface AuthContextType extends AuthState {
   isTokenValid: () => boolean;
 }
 
+const COOKIE_DOMAIN =
+  typeof window !== 'undefined' && window.location.hostname.includes('.local')
+    ? '.ecommerce.local'
+    : undefined;
+
+const COOKIE_BASE_OPTIONS = {
+  path: '/',
+  sameSite: 'lax' as const,
+  secure: false,
+  domain: COOKIE_DOMAIN,
+} as const;
+
 const COOKIE_CONFIG = {
   accessToken: {
+    ...COOKIE_BASE_OPTIONS,
     expires: 1,
-    sameSite: 'lax' as const,
-
-    secure: false,
-
-    domain:
-      typeof window !== 'undefined' &&
-      window.location.hostname.includes('.local')
-        ? '.ecommerce.local'
-        : undefined,
   },
   refreshToken: {
+    ...COOKIE_BASE_OPTIONS,
     expires: 7,
-    sameSite: 'lax' as const,
-    secure: false,
-    domain:
-      typeof window !== 'undefined' &&
-      window.location.hostname.includes('.local')
-        ? '.ecommerce.local'
-        : undefined,
   },
   user: {
+    ...COOKIE_BASE_OPTIONS,
     expires: 7,
-    sameSite: 'lax' as const,
-    secure: false,
-    domain:
-      typeof window !== 'undefined' &&
-      window.location.hostname.includes('.local')
-        ? '.ecommerce.local'
-        : undefined,
   },
 } as const;
 
@@ -147,9 +139,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearAuthData = useCallback(() => {
-    Cookies.remove(COOKIE_KEYS.accessToken);
-    Cookies.remove(COOKIE_KEYS.refreshToken);
-    Cookies.remove(COOKIE_KEYS.user);
+    const removeOptions = { path: '/', domain: COOKIE_DOMAIN };
+    Cookies.remove(COOKIE_KEYS.accessToken, removeOptions);
+    Cookies.remove(COOKIE_KEYS.refreshToken, removeOptions);
+    Cookies.remove(COOKIE_KEYS.user, removeOptions);
   }, []);
 
 
