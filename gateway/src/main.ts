@@ -1,7 +1,8 @@
+import cookieParser from 'cookie-parser';
 import { randomUUID } from 'crypto';
-import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
-import * as cookieParser from 'cookie-parser';
+import { NestFactory } from '@nestjs/core';
+
 import { AppModule } from './app.module';
 
 const SENSITIVE_KEY_PATTERNS = [
