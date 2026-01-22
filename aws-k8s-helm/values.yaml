@@ -4,7 +4,7 @@ global:
   storageClass: "local-path"
 
 networkPolicy:
-  enabled: false
+  enabled: true
 
 authApi:
   enabled: true
@@ -154,7 +154,7 @@ gateway:
       cpu: 50m
       memory: 64Mi
   autoscaling:
-    enabled: false
+    enabled: true
     minReplicas: 1
     maxReplicas: 3
     targetCPUUtilizationPercentage: 70
@@ -204,7 +204,7 @@ ecommerce:
       cpu: 50m
       memory: 64Mi
   autoscaling:
-    enabled: false
+    enabled: true
     minReplicas: 1
     maxReplicas: 3
     targetCPUUtilizationPercentage: 70

@@ -23,6 +23,11 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
       - name: {{ .Values.gateway.name }}
         {{- if .Values.global.imageRegistry }}
@@ -31,6 +36,13 @@ spec:
         image: "{{ .Values.gateway.image.repository }}:{{ .Values.gateway.image.tag }}"
         {{- end }}
         imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+              - ALL
         ports:
         - name: http
           containerPort: {{ .Values.gateway.service.targetPort }}
@@ -57,4 +69,3 @@ spec:
         resources:
           {{- toYaml .Values.gateway.resources | nindent 10 }}
 {{- end }}
-

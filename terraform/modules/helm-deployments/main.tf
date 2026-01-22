@@ -18,6 +18,12 @@ resource "kubernetes_namespace" "main" {
       name        = local.namespace
       environment = var.environment
       managed_by  = "terraform"
+      "pod-security.kubernetes.io/enforce" = "restricted"
+      "pod-security.kubernetes.io/audit"   = "restricted"
+      "pod-security.kubernetes.io/warn"    = "restricted"
+      "pod-security.kubernetes.io/enforce-version" = "latest"
+      "pod-security.kubernetes.io/audit-version"   = "latest"
+      "pod-security.kubernetes.io/warn-version"    = "latest"
     }
   }
 }
@@ -287,6 +293,9 @@ resource "helm_release" "application" {
         imagePullSecrets = [for s in var.image_pull_secrets : s.name]
         storageClass     = "hcloud-volumes"
       }
+      networkPolicy = {
+        enabled = true
+      }
 
       authApi = {
         image = {
@@ -343,6 +352,12 @@ resource "helm_release" "application" {
           pullPolicy = "Always"
         }
         replicaCount = var.environment == "production" ? 2 : 1
+        autoscaling = {
+          enabled                        = var.environment == "production"
+          minReplicas                    = 2
+          maxReplicas                    = 5
+          targetCPUUtilizationPercentage = 70
+        }
       }
 
       ecommerce = {
@@ -352,6 +367,12 @@ resource "helm_release" "application" {
           pullPolicy = "Always"
         }
         replicaCount = var.environment == "production" ? 2 : 1
+        autoscaling = {
+          enabled                        = var.environment == "production"
+          minReplicas                    = 2
+          maxReplicas                    = 5
+          targetCPUUtilizationPercentage = 70
+        }
       }
 
       ingress = {

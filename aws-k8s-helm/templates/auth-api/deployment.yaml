@@ -27,6 +27,8 @@ spec:
         fsGroup: 1001
         runAsNonRoot: true
         runAsUser: 1001
+        seccompProfile:
+          type: RuntimeDefault
       {{- $authDbHost := printf "%s-postgresql-auth" .Release.Name }}
       {{- $authDbPort := 5432 }}
       {{- if .Values.authApi.initContainers.waitForDb.enabled }}
@@ -38,6 +40,9 @@ spec:
           runAsNonRoot: true
           runAsUser: 1001
           allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
       {{- end }}
       containers:
       - name: {{ .Values.authApi.name }}
@@ -47,6 +52,13 @@ spec:
         image: "{{ .Values.authApi.image.repository }}:{{ .Values.authApi.image.tag }}"
         {{- end }}
         imagePullPolicy: {{ .Values.authApi.image.pullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+              - ALL
         ports:
         - name: http
           containerPort: {{ .Values.authApi.service.targetPort }}
