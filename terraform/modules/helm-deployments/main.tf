@@ -197,9 +197,15 @@ resource "helm_release" "prometheus_stack" {
           storageClassName = "hcloud-volumes"
           size             = "10Gi"
         }
+        sidecar = {
+          datasources = {
+            searchNamespace = "monitoring"
+          }
+        }
         datasources = {
           "datasources.yaml" = {
             apiVersion = 1
+            deleteDatasources = []
             datasources = [
               {
                 name      = "Prometheus"
