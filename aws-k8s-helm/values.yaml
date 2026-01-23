@@ -290,6 +290,9 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-body-size: "50m"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+    nginx.ingress.kubernetes.io/limit-burst: "40"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
     cert-manager.io/cluster-issuer: ""
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
